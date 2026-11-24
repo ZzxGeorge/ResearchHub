@@ -1,0 +1,21 @@
+export type Kind = 'paper'|'vocabulary'|'mathematics'|'algorithm'|'idea'|'question';
+export type Meta = Record<string, string|number|boolean|string[]|null>;
+export type Node = {id:string;kind:Kind;title:string;status:string;tags:string[];metadata:Meta;version:number;created_at:string;updated_at:string;markdown?:string;relations?:Edge[];attachments?:Attachment[];review?:ReviewState;review_history?:Record<string,string>[]};
+export type Attachment = {id:string;name:string;media_type:string;size:number};
+export type Edge = {id:string;source:string;target:string;type:string;description:string;evidence:string;node?:Node;direction?:string};
+export type ReviewState = {version:number;repetitions:number;interval_days:number;ease:string;due_at:string;last_review:string|null;lapses:number};
+export type Category = {id:string;name:string;kind:Kind;parent_id:string|null};
+export const names:Record<Kind,string>={paper:'文献知识库',vocabulary:'科研英语',mathematics:'数学知识库',algorithm:'算法知识库',idea:'科研想法',question:'待办与问题'};
+export const english:Record<Kind,string>={paper:'Literature',vocabulary:'Academic English',mathematics:'Mathematics',algorithm:'Algorithms',idea:'Research Ideas',question:'Tasks & Questions'};
+export const colors:Record<Kind,string>={paper:'#527dbb',vocabulary:'#b67a3d',mathematics:'#8a69c2',algorithm:'#24968a',idea:'#ce8b3f',question:'#be6575'};
+export const states:Record<Kind,string[]>={paper:['to_read','skimmed','reading','completed','archived'],vocabulary:['learning','mastered'],mathematics:['learning','mastered'],algorithm:['learning','mastered'],idea:['inspiration','survey','definition','design','experiment','analysis','writing','completed','paused','rejected'],question:['open','in_progress','resolved','paused']};
+export const labels:Record<string,string>={to_read:'待阅读',skimmed:'快速浏览',reading:'正在阅读',completed:'已完成',archived:'已归档',learning:'学习中',mastered:'已掌握',inspiration:'初步灵感',survey:'文献调研',definition:'问题定义',design:'方案设计',experiment:'实验验证',analysis:'结果分析',writing:'论文准备',paused:'暂时搁置',rejected:'已否定',open:'待解决',in_progress:'处理中',none:'未计划',planned:'计划复现',again:'忘记了',hard:'比较困难',good:'基本掌握',easy:'熟练掌握'};
+export const relationTypes=['uses','depends_on','derived_from','extends','compares_with','related_to','prerequisite_of','inspired_by','validates','contradicts'];
+export const relationLabels:Record<string,string>={uses:'使用',depends_on:'依赖',derived_from:'来源于',extends:'扩展',compares_with:'对比',related_to:'相关',prerequisite_of:'是其前置知识',inspired_by:'受到启发',validates:'验证',contradicts:'与之矛盾'};
+export const templates:Record<Kind,string>={
+paper:['论文基本信息','一句话总结','研究背景与核心问题','核心思想与主要创新','整体算法架构','核心数学公式与推导','训练流程与推理流程','实验与结果','方法评价与局限性','复现与实现参考','我的理解与思考','对未来研究的启发','待解决问题','关联文献'].map(t=>`## ${t}\n\n`).join('\n'),
+mathematics:['数学定义','直观理解','核心公式','定理与性质','详细推导','典型例子','在机器学习中的应用','在机器人学中的应用','前置知识','推荐教材与章节','不同论文中的应用场景','待解决问题'].map(t=>`## ${t}\n\n`).join('\n'),
+algorithm:['解决的问题','核心思想','数学基础','模型架构','输入与输出','目标函数与损失函数','梯度与参数更新','训练流程','推理流程','伪代码','Python / PyTorch 实现','算法优势与局限性','适用场景','实现注意事项','我的理解','实际使用经验'].map(t=>`## ${t}\n\n`).join('\n'),
+idea:['核心研究问题','研究背景与产生动机','已有方法的局限','初步研究假设','潜在创新点','初步技术路线','数学基础','需要解决的问题','对比方法','实验设计','评价指标','潜在风险','实验记录','下一步行动','被否定的假设与失败原因'].map(t=>`## ${t}\n\n`).join('\n'),
+question:['问题描述','下一步行动','解决过程','最终结论'].map(t=>`## ${t}\n\n`).join('\n'),vocabulary:'## 科研语境\n\n## 学习笔记\n\n'};
+export const fmtDate=(s:string)=>new Date(s).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});

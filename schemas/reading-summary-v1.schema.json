@@ -1,0 +1,493 @@
+{
+  "$defs": {
+    "Entry": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "paper",
+            "vocabulary",
+            "mathematics",
+            "algorithm",
+            "idea",
+            "question"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Tags",
+          "type": "array"
+        },
+        "status": {
+          "default": "",
+          "title": "Status",
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/$defs/Metadata"
+        },
+        "markdown": {
+          "default": "",
+          "maxLength": 2000000,
+          "title": "Markdown",
+          "type": "string"
+        },
+        "key": {
+          "pattern": "^[A-Za-z][A-Za-z0-9_-]{0,79}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "match_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Match Id"
+        }
+      },
+      "required": [
+        "kind",
+        "title",
+        "key"
+      ],
+      "title": "Entry",
+      "type": "object"
+    },
+    "ImportRelation": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "target": {
+          "title": "Target",
+          "type": "string"
+        },
+        "type": {
+          "default": "related_to",
+          "enum": [
+            "uses",
+            "depends_on",
+            "derived_from",
+            "extends",
+            "compares_with",
+            "related_to",
+            "prerequisite_of",
+            "inspired_by",
+            "validates",
+            "contradicts"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence": {
+          "default": "",
+          "title": "Evidence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target"
+      ],
+      "title": "ImportRelation",
+      "type": "object"
+    },
+    "Metadata": {
+      "additionalProperties": false,
+      "properties": {
+        "chinese_title": {
+          "default": "",
+          "title": "Chinese Title",
+          "type": "string"
+        },
+        "english_name": {
+          "default": "",
+          "title": "English Name",
+          "type": "string"
+        },
+        "abbreviation": {
+          "default": "",
+          "title": "Abbreviation",
+          "type": "string"
+        },
+        "authors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Authors",
+          "type": "array"
+        },
+        "institutions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Institutions",
+          "type": "array"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 2200,
+              "minimum": 1800,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Year"
+        },
+        "venue": {
+          "default": "",
+          "title": "Venue",
+          "type": "string"
+        },
+        "doi": {
+          "default": "",
+          "title": "Doi",
+          "type": "string"
+        },
+        "arxiv_id": {
+          "default": "",
+          "title": "Arxiv Id",
+          "type": "string"
+        },
+        "url": {
+          "default": "",
+          "title": "Url",
+          "type": "string"
+        },
+        "project_url": {
+          "default": "",
+          "title": "Project Url",
+          "type": "string"
+        },
+        "code_url": {
+          "default": "",
+          "title": "Code Url",
+          "type": "string"
+        },
+        "abstract": {
+          "default": "",
+          "title": "Abstract",
+          "type": "string"
+        },
+        "directions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Directions",
+          "type": "array"
+        },
+        "keywords": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Keywords",
+          "type": "array"
+        },
+        "category_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Category Ids",
+          "type": "array"
+        },
+        "reading_start": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reading Start"
+        },
+        "reading_end": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reading End"
+        },
+        "importance": {
+          "default": 3,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Importance",
+          "type": "integer"
+        },
+        "priority": {
+          "default": 3,
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "reproduction_status": {
+          "default": "none",
+          "enum": [
+            "none",
+            "planned",
+            "in_progress",
+            "completed"
+          ],
+          "title": "Reproduction Status",
+          "type": "string"
+        },
+        "worth_reproducing": {
+          "default": false,
+          "title": "Worth Reproducing",
+          "type": "boolean"
+        },
+        "reread": {
+          "default": false,
+          "title": "Reread",
+          "type": "boolean"
+        },
+        "part_of_speech": {
+          "default": "",
+          "title": "Part Of Speech",
+          "type": "string"
+        },
+        "sense": {
+          "default": "",
+          "title": "Sense",
+          "type": "string"
+        },
+        "vocabulary_category": {
+          "default": "general_academic",
+          "enum": [
+            "general_academic",
+            "mathematical",
+            "technical",
+            "phrases",
+            "writing"
+          ],
+          "title": "Vocabulary Category",
+          "type": "string"
+        },
+        "meaning": {
+          "default": "",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "contextual_meaning": {
+          "default": "",
+          "title": "Contextual Meaning",
+          "type": "string"
+        },
+        "collocations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Collocations",
+          "type": "array"
+        },
+        "examples": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Examples",
+          "type": "array"
+        },
+        "translations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Translations",
+          "type": "array"
+        },
+        "sources": {
+          "description": "Free-text page/section/evidence; paper links use relations",
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "mastery": {
+          "default": 0,
+          "maximum": 5,
+          "minimum": 0,
+          "title": "Mastery",
+          "type": "integer"
+        },
+        "textbooks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Textbooks",
+          "type": "array"
+        },
+        "textbook_chapters": {
+          "default": "",
+          "title": "Textbook Chapters",
+          "type": "string"
+        },
+        "idea_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Idea Date"
+        },
+        "experiment_path": {
+          "default": "",
+          "title": "Experiment Path",
+          "type": "string"
+        },
+        "next_action": {
+          "default": "",
+          "title": "Next Action",
+          "type": "string"
+        },
+        "question_type": {
+          "default": "research",
+          "enum": [
+            "english",
+            "mathematics",
+            "algorithm",
+            "code",
+            "experiment",
+            "research"
+          ],
+          "title": "Question Type",
+          "type": "string"
+        },
+        "resolved_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolved At"
+        }
+      },
+      "title": "Metadata",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "paper": {
+      "$ref": "#/$defs/Entry"
+    },
+    "literature_note": {
+      "default": "",
+      "maxLength": 2000000,
+      "title": "Literature Note",
+      "type": "string"
+    },
+    "vocabulary": {
+      "items": {
+        "$ref": "#/$defs/Entry"
+      },
+      "maxItems": 1000,
+      "title": "Vocabulary",
+      "type": "array"
+    },
+    "mathematics": {
+      "items": {
+        "$ref": "#/$defs/Entry"
+      },
+      "maxItems": 1000,
+      "title": "Mathematics",
+      "type": "array"
+    },
+    "algorithms": {
+      "items": {
+        "$ref": "#/$defs/Entry"
+      },
+      "maxItems": 1000,
+      "title": "Algorithms",
+      "type": "array"
+    },
+    "research_ideas": {
+      "items": {
+        "$ref": "#/$defs/Entry"
+      },
+      "maxItems": 1000,
+      "title": "Research Ideas",
+      "type": "array"
+    },
+    "questions": {
+      "items": {
+        "$ref": "#/$defs/Entry"
+      },
+      "maxItems": 1000,
+      "title": "Questions",
+      "type": "array"
+    },
+    "relations": {
+      "items": {
+        "$ref": "#/$defs/ImportRelation"
+      },
+      "maxItems": 5000,
+      "title": "Relations",
+      "type": "array"
+    },
+    "reading_summary": {
+      "default": "",
+      "maxLength": 100000,
+      "title": "Reading Summary",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "paper"
+  ],
+  "title": "ImportBundle",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:research-hub:reading-summary:1.0"
+}
