@@ -4,6 +4,9 @@ import json
 import logging
 import os
 import zipfile
+import secrets
+import sys
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from pathlib import Path
 from urllib.parse import urlparse, quote
 from datetime import date
@@ -12,7 +15,7 @@ from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, func, text
 from .workspace import Workspace, now, uid, dumps, sha
-from .models import Node, Relation, Attachment, Revision, ReviewState, ReviewLog, Category
+from .models import Node, Relation, Attachment, Revision, ReviewState, ReviewLog, Category, ReadingPosition
 from .schemas import NodeInput, NodeUpdate, ImportBundle, ImportCommit, RelationInput, ReviewInput, CategoryInput, MergeInput, KINDS, STATES
 from .services import seed_categories, get_node, node_dict, save_node, check_version, index_node, related, search_nodes, add_relation, relation_dict, preview_import, commit_import, state_dict, review, merge_nodes, graph_data
 from .backup import create_backup, restore_backup
@@ -21,14 +24,31 @@ logger = logging.getLogger('research_hub')
 MAX_UPLOAD = 50 * 1024 * 1024
 MAX_JSON = 10 * 1024 * 1024
 
+class ReadingStateInput(BaseModel):
+    model_config=ConfigDict(extra='forbid')
+    page:int=Field(default=1,ge=1,le=100000)
+    scale:str='page-width'
+    offset:float=Field(default=0,ge=0,le=1)
+    @field_validator('scale')
+    @classmethod
+    def valid_scale(cls,value):
+        if value in {'page-width','page-fit','auto'}:return value
+        try:
+            if .25<=float(value)<=5:return value
+        except ValueError:pass
+        raise ValueError('Invalid PDF scale')
+
 def create_app(workspace=None):
     ws = Workspace(Path(workspace or os.environ.get('RESEARCH_HUB_WORKSPACE',Path.home()/'.research-hub/workspace')))
     seed_categories(ws)
-    app = FastAPI(title='Research Hub',version='0.1.0')
+    app = FastAPI(title='Research Hub',version='0.2.0')
     app.state.workspace = ws
 
     @app.middleware('http')
     async def local_only(request: Request, call_next):
+        desktop_token=os.environ.get('RESEARCH_HUB_DESKTOP_TOKEN')
+        if desktop_token and not secrets.compare_digest(request.headers.get('X-Research-Hub-Token',''),desktop_token):
+            return JSONResponse({'detail':'需要桌面会话凭证'},status_code=401)
         host = request.url.hostname
         if host not in {'127.0.0.1','localhost','::1'}:
             return JSONResponse({'detail':'仅允许本机 Host'},status_code=403)
@@ -67,10 +87,10 @@ def create_app(workspace=None):
         return JSONResponse({'detail':'操作失败，原有记录未被覆盖。请检查服务日志和工作空间文件权限。'},status_code=500)
 
     @app.get('/api/health')
-    def health(): return {'status':'ok','version':'0.1.0'}
+    def health(): return {'status':'ok','version':'0.2.0','instance':os.environ.get('RESEARCH_HUB_INSTANCE')}
 
     @app.get('/api/settings')
-    def settings(): return {'workspace':str(ws.root),'data_format_version':'1.0','review_algorithm':'sm2-v1','states':STATES,'max_upload_mb':50,'backup_directory':str(Path(os.environ.get('RESEARCH_HUB_BACKUP_DIR',ws.root/'backups')).expanduser().resolve())}
+    def settings(): return {'version':'0.2.0','workspace':str(ws.root),'data_format_version':'1.0','review_algorithm':'sm2-v1','states':STATES,'max_upload_mb':50,'backup_directory':str(Path(os.environ.get('RESEARCH_HUB_BACKUP_DIR',ws.root/'backups')).expanduser().resolve())}
 
     @app.get('/api/dashboard')
     def dashboard():
@@ -283,6 +303,7 @@ def create_app(workspace=None):
             data={'data_format_version':'1.0','exported_at':now(),'nodes':[node_dict(n,ws) for n in s.scalars(select(Node))],'relations':[relation_dict(r) for r in s.scalars(select(Relation))],'categories':[{k:getattr(c,k) for k in ['id','kind','name','parent_id']} for c in s.scalars(select(Category))],'review_states':[{'node_id':r.node_id,**state_dict(r)} for r in s.scalars(select(ReviewState))],'review_history':[{k:getattr(r,k) for k in ['id','node_id','rating','reviewed_at','before_json','after_json','algorithm']} for r in s.scalars(select(ReviewLog))]}
             data['attachments']=[{k:getattr(a,k) for k in ['id','node_id','name','path','media_type','sha256','size','created_at']} for a in s.scalars(select(Attachment))]
             data['revisions']=[{'id':r.id,'node_id':r.node_id,'version':r.version,'snapshot':json.loads(r.snapshot),'markdown':ws.read_note(r.note_path),'created_at':r.created_at} for r in s.scalars(select(Revision))]
+            data['reading_positions']=[{'attachment_id':r.attachment_id,**json.loads(r.data_json),'updated_at':r.updated_at} for r in s.scalars(select(ReadingPosition))]
             return Response(dumps(data),media_type='application/json',headers={'Content-Disposition':'attachment; filename="research-hub.json"'})
 
     @app.get('/api/export/vocabulary')
@@ -308,7 +329,27 @@ def create_app(workspace=None):
         with ws.lock:
             return restore_backup(file.file,target)
 
-    dist=Path(__file__).resolve().parents[2]/'frontend/dist'
+    @app.get('/api/attachments/{attachment_id}/reading-state')
+    def reading_state(attachment_id:str):
+        with ws.lock,ws.Session() as s:
+            a=s.get(Attachment,attachment_id)
+            if not a or a.media_type!='application/pdf':raise HTTPException(404,'PDF 不存在')
+            get_node(s,a.node_id)
+            state=s.get(ReadingPosition,attachment_id)
+            return json.loads(state.data_json) if state else ReadingStateInput().model_dump()
+
+    @app.put('/api/attachments/{attachment_id}/reading-state')
+    def save_reading_state(attachment_id:str,data:ReadingStateInput):
+        with ws.lock,ws.Session.begin() as s:
+            a=s.get(Attachment,attachment_id)
+            if not a or a.media_type!='application/pdf':raise HTTPException(404,'PDF 不存在')
+            get_node(s,a.node_id)
+            state=s.get(ReadingPosition,attachment_id)
+            if not state:state=ReadingPosition(attachment_id=attachment_id);s.add(state)
+            state.data_json=dumps(data.model_dump());state.updated_at=now()
+            return data.model_dump()
+
+    dist=(Path(sys._MEIPASS)/'frontend/dist') if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[2]/'frontend/dist'
     if dist.exists():
         app.mount('/',StaticFiles(directory=dist,html=True),name='frontend')
     return app

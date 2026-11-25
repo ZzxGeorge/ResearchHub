@@ -83,3 +83,9 @@ class Category(Base):
     kind = Column(String, nullable=False)
     name = Column(String, nullable=False)
     parent_id = Column(String, ForeignKey('categories.id'))
+
+class ReadingPosition(Base):
+    __tablename__ = 'reading_positions'
+    attachment_id = Column(String, ForeignKey('attachments.id'), primary_key=True)
+    data_json = Column(Text, nullable=False)
+    updated_at = Column(String, nullable=False)

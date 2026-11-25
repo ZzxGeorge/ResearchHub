@@ -1,3 +1,4 @@
+import {desktop} from './desktop';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {Activity,BookOpen,Braces,ChevronLeft,Command,GraduationCap,HelpCircle,LayoutDashboard,Lightbulb,LoaderCircle,Menu,Moon,Network,Plus,Search,Settings as SettingsIcon,Sun,Upload,WholeWord,X} from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
@@ -18,7 +19,9 @@ export default function App(){
  const guard=useRef<null|(()=>Promise<boolean>)>(null);
  const onError=useCallback((e:unknown)=>setError(e instanceof Error?e.message:String(e)),[]);
  const changed=useCallback(()=>setEpoch(n=>n+1),[]);
- useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('rh-theme',theme);},[theme]);
+ const themeReady=useRef(!desktop);
+ useEffect(()=>{void desktop?.readCache('rh-theme').then(value=>{themeReady.current=true;if(value==='light'||value==='dark')setTheme(value);}).catch(onError);},[]);
+ useEffect(()=>{document.documentElement.dataset.theme=theme;localStorage.setItem('rh-theme',theme);if(themeReady.current)void desktop?.writeCache('rh-theme',theme).catch(onError);},[theme]);
  useEffect(()=>{api('/dashboard').then(setData).catch(onError);},[epoch]);
  async function canLeave(){if(!guard.current)return true;const ok=await guard.current();if(!ok)setError('当前笔记尚未保存。草稿保留在浏览器，请完成保存或下载草稿后重新加载。');return ok;}
  async function navigate(next:string){if(!await canLeave())return;setDetail(null);setPage(next);}

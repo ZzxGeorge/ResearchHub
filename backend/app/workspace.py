@@ -1,6 +1,9 @@
 import hashlib
 import json
 import os
+import sys
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -39,10 +42,26 @@ class Workspace:
         self.Session = sessionmaker(self.engine, expire_on_commit=False)
         with self.lock:
             cfg = Config()
-            cfg.set_main_option('script_location', str(Path(__file__).resolve().parents[1] / 'migrations'))
-            with self.engine.begin() as connection:
-                cfg.attributes['connection'] = connection
-                command.upgrade(cfg, 'head')
+            resource_root=Path(getattr(sys,'_MEIPASS',Path(__file__).resolve().parents[1]))
+            cfg.set_main_option('script_location', str(resource_root / 'migrations'))
+            from alembic.script import ScriptDirectory
+            head=ScriptDirectory.from_config(cfg).get_current_head()
+            backup=None
+            if self.db.exists() and self.db.stat().st_size:
+                with closing(sqlite3.connect(self.db)) as raw:
+                    exists=raw.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version'").fetchone()
+                    current=raw.execute('SELECT version_num FROM alembic_version').fetchone() if exists else None
+                if not exists: raise RuntimeError('已有数据库没有迁移版本，已停止升级。请先完整备份并检查数据库来源。')
+                if current and current[0]!=head:
+                    from .backup import create_backup
+                    backup=create_backup(self)
+            try:
+                with self.engine.begin() as connection:
+                    cfg.attributes['connection'] = connection
+                    command.upgrade(cfg, 'head')
+            except Exception as exc:
+                self.engine.dispose()
+                raise RuntimeError(f'数据库迁移失败，已停止启动。迁移前备份：{backup or "无原数据库"}。请恢复到新目录。') from exc
             config = self.root / 'workspace.json'
             if not config.exists():
                 self.write_bytes('workspace.json', dumps({'data_format_version':'1.0','review_algorithm':'sm2-v1'}).encode())

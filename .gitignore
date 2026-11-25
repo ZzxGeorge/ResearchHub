@@ -14,3 +14,6 @@ ResearchWorkspace/
 .artifacts/
 *.log
 frontend/public/pdfjs/
+build/
+release/
+desktop/node_modules/

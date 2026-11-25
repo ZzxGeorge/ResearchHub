@@ -9,3 +9,16 @@ Markdown files are authoritative for body content. Immutable revisions are writt
 Use Alembic for schema upgrades; do not change an existing migration after release. Preserve full revision/review history and soft-deleted nodes. JSON interchange v1 is generated from Pydantic schemas via scripts/generate_protocol.py; regenerate schema and prompt together when models change. Imports use preview + explicit decisions, one transaction, append-only note merge, idempotency receipts. Do not infer semantic equivalence from titles alone.
 
 Tests must use isolated temporary workspaces. Never seed or test against the user's actual data. Browser QA uses a separate temporary workspace. Document incomplete work and verification limits in DEVELOPMENT_STATUS.md. No mandatory paid APIs, remote fonts, analytics, or external content fetching.
+
+
+## Desktop v0.2
+
+Electron shell lives in desktop/; main process owns a PyInstaller onedir backend. Windows builds use scripts/build_windows.ps1, explicit resource allowlists, and release/. Never package any user workspace, test workspace, database, PDF or backup. Backend resource paths must work under sys._MEIPASS. Browser start.py remains supported.
+
+Keep contextIsolation, sandbox and webSecurity enabled; nodeIntegration disabled. Preload exposes narrow, origin-checked IPC calls only, including cache operations limited to rh-theme and rh-draft-UUID keys. Desktop UI draft/theme state is workspace-scoped and independent of the random loopback origin. Backend token is launch-scoped, stays out of renderer/argv/logs and protects reads as well as writes. Health must match the launched instance. Bind the socket on port 0 to avoid port-selection races. Parent stdin EOF stops the backend. Only stop processes owned by the current launch.
+
+Before any existing database upgrade, create a complete recoverable backup under the workspace lock; stop on failure. Migration 0002 adds per-attachment reading positions only; interchange v1 and its prompt must stay compatible. Test upgrades against the v0.1.0 Git tag in independent workspaces. No destructive downgrades.
+
+Retain PDF.js and the existing split mode. PDFViewer is its official continuous viewer with text/search layers; do not enable PDF scripting, remote resources or eval. reading_positions persist page, zoom mode and offset in SQLite and travel with backups. Advanced annotations require a separate future migration.
+
+Electron 45 can refuse to run unpacked executables inside this Codex workspace due to AppContainer ACLs. Do not disable the sandbox or weaken directory ACLs; test the NSIS-installed application in the ordinary current-user Programs location. Document that clean Windows 10/11 and restricted custom installation directories need separate validation.

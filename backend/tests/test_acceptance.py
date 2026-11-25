@@ -237,7 +237,7 @@ def test_missing_files_and_migration_reopen(client,tmp_path):
     other=create_app(ws.root)
     with TestClient(other,base_url='http://127.0.0.1') as c: assert c.get('/api/nodes/'+n['id']).json()['markdown']=='safe'
     other.state.workspace.engine.dispose()
-    with sqlite3.connect(ws.db) as db: assert db.execute('select version_num from alembic_version').fetchone()[0]=='0001'
+    with sqlite3.connect(ws.db) as db: assert db.execute('select version_num from alembic_version').fetchone()[0]=='0002'
     with pytest.raises(ValueError,match='非法'): ws.path('../outside')
 
 def test_graph_query_filters_before_limiting(client):

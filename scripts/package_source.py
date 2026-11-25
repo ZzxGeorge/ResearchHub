@@ -3,8 +3,8 @@ from pathlib import Path
 import zipfile
 import hashlib
 ROOT=Path(__file__).resolve().parents[1]
-OUTPUT=ROOT/'.artifacts/ResearchHub-0.1.0-source.zip'
-INCLUDE=['backend','frontend/src','frontend/tests','frontend/scripts','frontend/index.html','frontend/package.json','frontend/package-lock.json','frontend/tsconfig.json','frontend/vite.config.ts','schemas','examples','scripts','docs','README.md','AGENTS.md','DEVELOPMENT_STATUS.md','pytest.ini','.gitignore']
+OUTPUT=ROOT/'.artifacts/ResearchHub-0.2.0-source.zip'
+INCLUDE=['desktop','backend','frontend/src','frontend/tests','frontend/scripts','frontend/index.html','frontend/package.json','frontend/package-lock.json','frontend/tsconfig.json','frontend/vite.config.ts','schemas','examples','scripts','docs','README.md','AGENTS.md','DEVELOPMENT_STATUS.md','pytest.ini','.gitignore']
 if __name__=='__main__':
     OUTPUT.parent.mkdir(exist_ok=True)
     paths=set()

@@ -1,10 +1,29 @@
 # Research Hub
 
-本地优先的个人科研知识中心。React / TypeScript + FastAPI / SQLAlchemy + SQLite / Markdown，无账号、无云端、无付费 API。当前版本 **0.1.0**。
+本地优先的个人科研知识中心。React / TypeScript + FastAPI / SQLAlchemy + SQLite / Markdown，无账号、无云端、无付费 API。当前版本 **0.2.0**。
 
 已实现六类知识管理、Markdown / LaTeX / Mermaid、PDF 分栏、双向关联、结构化导入、跨库全文检索、SM-2 词汇复习、知识图谱、想法看板、版本历史、回收站、导出和备份恢复。正式知识库初始为空；示例不会自动导入。
 
 实际交付范围、验收结果和限制见 [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)。这是一份可运行的初始版本；长期存储请建立独立备份，升级前先备份。
+
+
+## Windows 桌面版 v0.2.0
+
+安装包：`release/ResearchHub-Setup-0.2.0-x64.exe`。双击安装，默认当前用户安装到 `%LOCALAPPDATA%/Programs/Research Hub`，可选择安装路径。安装后使用桌面或开始菜单的 **Research Hub** 启动；无需 Python、Node 或外部浏览器。请使用安装包，不要直接运行源码工作区里的 win-unpacked 验收包。
+
+桌面版自动识别原有 `~/.research-hub/workspace`；也接受 `--workspace` 和 `RESEARCH_HUB_WORKSPACE`。设置页面可查看软件版本、打开工作空间 / 日志目录、选择其他数据目录并重启。安装、覆盖安装和卸载不会删除科研工作空间。旧数据库实际升级前自动生成完整备份。
+
+PDF 增加仅 PDF / 仅笔记 / 分栏、连续滚动、文本选择、搜索高亮、缩略图、内置目录、页码跳转、适宽 / 整页和阅读位置保存。沿用 PDF.js 4.10.38，全部资源本地打包。进阶摘录、高亮批注和 OCR 暂未实现。
+
+重新打包（开发机需要 Python 3.10+、Node 22/24 和 npm）：
+
+```powershell
+.\scripts\build_windows.ps1
+```
+
+首次构建会联网下载锁定依赖；已安装依赖时可加 `-SkipInstall`。产物在 release，构建中间文件在 build。未进行数字签名，Windows 可能显示 SmartScreen 或未知发布者提示；如遇系统阻止，请由用户自行核验和处理，软件不会更改安全设置。
+
+详见 [桌面架构](docs/desktop_architecture.md)、[安装、升级与故障处理](docs/windows_installation.md)、[v0.2 验收记录](docs/verification-v020.md)。下列 Python / 浏览器启动方式继续保留用于开发。
 
 ## 环境
 
