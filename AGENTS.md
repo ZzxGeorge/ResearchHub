@@ -22,3 +22,9 @@ Before any existing database upgrade, create a complete recoverable backup under
 Retain PDF.js and the existing split mode. PDFViewer is its official continuous viewer with text/search layers; do not enable PDF scripting, remote resources or eval. reading_positions persist page, zoom mode and offset in SQLite and travel with backups. Advanced annotations require a separate future migration.
 
 Electron 45 can refuse to run unpacked executables inside this Codex workspace due to AppContainer ACLs. Do not disable the sandbox or weaken directory ACLs; test the NSIS-installed application in the ordinary current-user Programs location. Document that clean Windows 10/11 and restricted custom installation directories need separate validation.
+
+## GitHub synchronization (user-authorized)
+
+Canonical remote: https://github.com/ZzxGeorge/ResearchHub.git, remote name origin, primary branch main. The user has requested timely GitHub synchronization of subsequent improvements in this project. After meaningful authorized changes, run relevant checks, update README / DEVELOPMENT_STATUS as needed, commit explicit source/documentation paths and push the completed commits. Inspect remote changes first; preserve both local and remote work and never force-push. Push relevant version tags when releasing. Report push failures or authentication blockers honestly; do not claim synchronization without verifying the remote commit.
+
+Only application source, public test examples, and documentation belong in Git. Never upload research workspaces, personal papers/notes/ideas, databases, backups, logs or credentials. Publish requested Windows installers as GitHub Release assets, not Git objects; include verification notes and SHA256. No background polling or scheduling is implied by this standing workflow.
