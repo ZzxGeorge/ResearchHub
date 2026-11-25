@@ -92,6 +92,16 @@ def main():
             assets.append({'name':asset['name'],'url':asset['browser_download_url'],'bytes':asset['size'],'sha256':local_digest})
         if release['draft']:
             release = call('PATCH', API+f'/releases/{release["id"]}', json={'draft':False})
+        # Draft asset URLs can contain an untagged placeholder; read the published URLs again.
+        published = call('GET', API+f'/releases/{release["id"]}')
+        if published['draft'] or published['tag_name'] != args.tag:
+            raise RuntimeError('Published release verification failed')
+        published_assets = {asset['name']:asset for asset in published['assets']}
+        for asset in assets:
+            current = published_assets[asset['name']]
+            if current['state'] != 'uploaded' or current['size'] != asset['bytes']:
+                raise RuntimeError('Published asset verification failed')
+            asset['url'] = current['browser_download_url']
         result = {'repository':REPO,'release_url':release['html_url'],'tag':args.tag,'assets':assets}
         output = ROOT/'.artifacts/github-release-report.json'
         output.parent.mkdir(exist_ok=True)
