@@ -2,11 +2,17 @@
 
 [源码仓库](https://github.com/ZzxGeorge/ResearchHub) · [Windows 安装包与版本发布](https://github.com/ZzxGeorge/ResearchHub/releases) · [使用手册](docs/user_guide.md) · [已知限制](DEVELOPMENT_STATUS.md)
 
-本地优先的个人科研知识中心。React / TypeScript + FastAPI / SQLAlchemy + SQLite / Markdown，无账号、无云端、无付费 API。当前版本 **0.2.0**。
+本地优先的个人科研知识中心。React / TypeScript + FastAPI / SQLAlchemy + SQLite / Markdown，无账号、无云端、无付费 API。当前版本 **0.3.0**。
 
 已实现六类知识管理、Markdown / LaTeX / Mermaid、PDF 分栏、双向关联、结构化导入、跨库全文检索、SM-2 词汇复习、知识图谱、想法看板、版本历史、回收站、导出和备份恢复。正式知识库初始为空；示例不会自动导入。
 
 实际交付范围、验收结果和限制见 [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)。这是一份可运行的初始版本；长期存储请建立独立备份，升级前先备份。
+
+## v0.3 交互阅读
+
+选中 PDF 原文 → 记录词汇/数学/算法/想法/问题 → 自动保留页码与选区 → 随时返回原文。支持持久高亮、Markdown/LaTeX 批注、重复词汇追加、待完善词汇、原文插入笔记及六种 ChatGPT 提问模板。
+
+[新功能使用说明](docs/interactive_reading.md) · [来源与批注数据模型](docs/source_anchor_model.md)
 
 ## 基本功能
 
@@ -22,7 +28,7 @@
 
 ## 第一次使用
 
-**普通 Windows 用户：**从 [Releases](https://github.com/ZzxGeorge/ResearchHub/releases) 下载 `ResearchHub-Setup-0.2.0-x64.exe`，按向导安装，再双击桌面或开始菜单中的 **Research Hub**。无需自行安装 Python、Node.js 或 npm。安装包未签名，系统可能显示未知发布者提示。
+**普通 Windows 用户：**从 [Releases](https://github.com/ZzxGeorge/ResearchHub/releases) 下载 `ResearchHub-Setup-0.3.0-x64.exe`，按向导安装，再双击桌面或开始菜单中的 **Research Hub**。无需自行安装 Python、Node.js 或 npm。安装包未签名，系统可能显示未知发布者提示。
 
 **准备修改源码：**先克隆仓库，再按下文安装开发依赖。Git 仓库不存储安装包、构建目录或个人科研数据；安装包在 Releases 独立发布。
 
@@ -34,13 +40,13 @@ cd ResearchHub
 建议先添加一篇论文，在笔记中记录理解，再关联数学、算法和问题。初次启动的正式知识库为空，`examples/` 中的示例仅供自选导入。
 
 
-## Windows 桌面版 v0.2.0
+## Windows 桌面版 v0.3.0
 
-下载：[v0.2.0 Windows 安装包](https://github.com/ZzxGeorge/ResearchHub/releases/download/v0.2.0/ResearchHub-Setup-0.2.0-x64.exe)。自行构建后的文件位于 `release/ResearchHub-Setup-0.2.0-x64.exe`。双击安装，默认当前用户安装到 `%LOCALAPPDATA%/Programs/Research Hub`，可选择安装路径。安装后使用桌面或开始菜单的 **Research Hub** 启动；无需 Python、Node 或外部浏览器。请使用安装包，不要直接运行源码工作区里的 win-unpacked 验收包。
+下载：[v0.3.0 Windows 安装包](https://github.com/ZzxGeorge/ResearchHub/releases/download/v0.3.0/ResearchHub-Setup-0.3.0-x64.exe)。自行构建后的文件位于 `release/ResearchHub-Setup-0.3.0-x64.exe`。双击安装，默认当前用户安装到 `%LOCALAPPDATA%/Programs/Research Hub`，可选择安装路径。安装后使用桌面或开始菜单的 **Research Hub** 启动；无需 Python、Node 或外部浏览器。请使用安装包，不要直接运行源码工作区里的 win-unpacked 验收包。
 
 桌面版自动识别原有 `~/.research-hub/workspace`；也接受 `--workspace` 和 `RESEARCH_HUB_WORKSPACE`。设置页面可查看软件版本、打开工作空间 / 日志目录、选择其他数据目录并重启。安装、覆盖安装和卸载不会删除科研工作空间。旧数据库实际升级前自动生成完整备份。
 
-PDF 增加仅 PDF / 仅笔记 / 分栏、连续滚动、文本选择、搜索高亮、缩略图、内置目录、页码跳转、适宽 / 整页和阅读位置保存。沿用 PDF.js 4.10.38，全部资源本地打包。进阶摘录、高亮批注和 OCR 暂未实现。
+PDF 增加仅 PDF / 仅笔记 / 分栏、连续滚动、文本选择、搜索高亮、缩略图、内置目录、页码跳转、适宽 / 整页和阅读位置保存。沿用 PDF.js 4.10.38，全部资源本地打包。新增选文工具栏、精确原文出处、快速收集知识、高亮批注、双向跳转与 ChatGPT 提问复制；OCR 和区域截图暂未实现。
 
 重新打包（开发机需要 Python 3.10+、Node 22/24 和 npm）：
 
@@ -50,7 +56,7 @@ PDF 增加仅 PDF / 仅笔记 / 分栏、连续滚动、文本选择、搜索高
 
 首次构建会联网下载锁定依赖；已安装依赖时可加 `-SkipInstall`。产物在 release，构建中间文件在 build。未进行数字签名，Windows 可能显示 SmartScreen 或未知发布者提示；如遇系统阻止，请由用户自行核验和处理，软件不会更改安全设置。
 
-详见 [桌面架构](docs/desktop_architecture.md)、[安装、升级与故障处理](docs/windows_installation.md)、[v0.2 验收记录](docs/verification-v020.md)。下列 Python / 浏览器启动方式继续保留用于开发。
+详见 [桌面架构](docs/desktop_architecture.md)、[安装、升级与故障处理](docs/windows_installation.md)、[v0.3 验收记录](docs/verification-v030.md)。下列 Python / 浏览器启动方式继续保留用于开发。
 
 ## 环境
 
@@ -198,7 +204,7 @@ git push origin main
 
 不要将数据库、论文、个人想法笔记、用户工作空间、备份、日志、凭证、`.venv/` 或 `node_modules/` 提交到 Git。推送遇到远程更新时先检查并合并，不使用强制推送覆盖远程历史。GitHub 同步用于应用源码，个人知识库仍使用独立的本地备份。
 
-有发布权限的维护者可在推送版本标签、构建并核验 `release/BUILD_INFO.json` 后运行 `.venv` 中的 Python 执行 `scripts/publish_github_release.py --tag v0.2.0`。脚本复用 Git Credential Manager 或现有 GitHub 令牌环境变量，先创建草稿、校验安装包及附件再发布；不会把凭证写入文件或上传个人知识库。
+有发布权限的维护者可在推送版本标签、构建并核验 `release/BUILD_INFO.json` 后运行 `.venv` 中的 Python 执行 `scripts/publish_github_release.py --tag v0.3.0`。脚本复用 Git Credential Manager 或现有 GitHub 令牌环境变量，先创建草稿、校验安装包及附件再发布；不会把凭证写入文件或上传个人知识库。
 
 ## 进一步阅读
 

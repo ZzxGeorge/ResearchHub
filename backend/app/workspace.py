@@ -87,7 +87,7 @@ class Workspace:
         return relative
 
     def write_note(self, kind, node_id, version, body):
-        folders = {'paper':'literature/notes','vocabulary':'vocabulary','mathematics':'mathematics','algorithm':'algorithms','idea':'research_ideas','question':'questions'}
+        folders = {'paper':'literature/notes','vocabulary':'vocabulary','mathematics':'mathematics','algorithm':'algorithms','idea':'research_ideas','question':'questions','annotation':'annotations'}
         relative = f'{folders[kind]}/{node_id}/v{version}-{uid()}.md'
         self.write_bytes(relative, body.encode('utf-8'))
         return relative

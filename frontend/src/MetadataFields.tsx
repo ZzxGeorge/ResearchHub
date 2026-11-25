@@ -1,0 +1,9 @@
+import {fields} from './fields';
+import type {Kind,Meta,Category} from './types';
+
+/** Shared metadata editor: reading captures use exactly the ordinary knowledge fields. */
+export function MetadataFields({kind,metadata,onChange,categories=[]}:{kind:Kind;metadata:Meta;onChange:(key:string,value:Meta[string])=>void;categories?:Category[]}){
+ return <div className="fields">{fields[kind].map(f=><label className={f.type==='long'?'wide':''} key={f.key}><span>{f.label}{f.type==='list'&&<small> 每行一条</small>}</span>{f.type==='bool'?<input type="checkbox" checked={!!metadata[f.key]} onChange={e=>onChange(f.key,e.target.checked)}/>:f.type==='select'?<select value={String(metadata[f.key]||f.options?.[0][0]||'')} onChange={e=>onChange(f.key,e.target.value)}>{f.options?.map(([k,v])=><option key={k} value={k}>{v}</option>)}</select>:f.type==='list'||f.type==='long'?<textarea rows={3} value={Array.isArray(metadata[f.key])?(metadata[f.key] as string[]).join('\n'):String(metadata[f.key]||'')} onChange={e=>onChange(f.key,f.type==='list'?e.target.value.split('\n'):e.target.value)}/>:<input type={f.type==='number'?'number':f.type==='date'?'date':'text'} value={String(metadata[f.key]??'').slice(0,f.type==='date'?10:undefined)} min={f.key==='year'?1800:f.key==='mastery'?0:1} max={f.key==='year'?2200:5} onChange={e=>onChange(f.key,f.type==='number'?(e.target.value?Number(e.target.value):null):f.type==='date'?(e.target.value||null):e.target.value)}/>}</label>)}
+ {['mathematics','algorithm'].includes(kind)&&<fieldset className="wide"><legend>分类（允许多选）</legend>{categories.filter(c=>c.kind===kind).map(c=><label className="checkbox-line" key={c.id}><input type="checkbox" checked={(metadata.category_ids as string[]||[]).includes(c.id)} onChange={e=>onChange('category_ids',e.target.checked?[...(metadata.category_ids as string[]||[]),c.id]:(metadata.category_ids as string[]||[]).filter(id=>id!==c.id))}/>{c.parent_id?'↳ ':''}{c.name}</label>)}</fieldset>}
+ </div>;
+}

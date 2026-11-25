@@ -29,8 +29,8 @@ def test_reading_position_validation_and_backup(client,tmp_path):
     n=client.post('/api/nodes',json={'kind':'paper','title':'中文论文'}).json()
     a=client.post('/api/nodes/'+n['id']+'/attachments',files={'file':('测试论文.pdf',b'%PDF-1.4\ntest')}).json()
     url='/api/attachments/'+a['id']+'/reading-state'
-    assert client.get(url).json()=={'page':1,'scale':'page-width','offset':0}
-    position={'page':7,'scale':'1.5','offset':.35}
+    assert client.get(url).json()=={'page':1,'scale':'page-width','offset':0,'rotation':0}
+    position={'page':7,'scale':'1.5','offset':.35,'rotation':90}
     assert client.put(url,json=position).status_code==200
     assert client.put(url,json={**position,'scale':'javascript:bad'}).status_code==422
     assert client.put(url,json={**position,'offset':2}).status_code==422
@@ -40,9 +40,10 @@ def test_reading_position_validation_and_backup(client,tmp_path):
     with TestClient(other,base_url='http://127.0.0.1') as c:assert c.get(url).json()==position
     other.state.workspace.engine.dispose()
 
-def test_actual_v010_workspace_migration_and_backup(tmp_path):
-    archive=subprocess.run(['git','archive','--format=zip','v0.1.0','backend'],cwd=ROOT,capture_output=True)
-    if archive.returncode:pytest.skip('v0.1.0 Git tag is needed for the historical integration fixture')
+@pytest.mark.parametrize('historical_tag',['v0.1.0','v0.2.0'])
+def test_actual_historical_workspace_migration_and_backup(tmp_path,historical_tag):
+    archive=subprocess.run(['git','archive','--format=zip',historical_tag,'backend'],cwd=ROOT,capture_output=True)
+    if archive.returncode:pytest.skip('Historical Git tag is needed for the historical integration fixture')
     old=tmp_path/'old-source';old.mkdir()
     with zipfile.ZipFile(io.BytesIO(archive.stdout)) as z:z.extractall(old)
     workspace=tmp_path/'旧科研资料'
@@ -66,7 +67,10 @@ app.state.workspace.engine.dispose()
     app=create_app(workspace)
     with TestClient(app,base_url='http://127.0.0.1') as c:
         for kind in ['paper','vocabulary']:
-            assert c.get('/api/nodes/'+before[kind]['id']).json()==before[kind]
+            after=c.get('/api/nodes/'+before[kind]['id']).json()
+            for attachment in after['attachments']:
+                assert len(attachment.pop('sha256'))==64
+            assert after==before[kind]
     backups=list((workspace/'backups').glob('*.zip'));assert len(backups)==1
     restore_backup(backups[0],tmp_path/'迁移前恢复副本')
     app.state.workspace.engine.dispose()

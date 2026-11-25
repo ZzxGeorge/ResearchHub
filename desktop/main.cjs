@@ -38,7 +38,7 @@ async function startBackend(selected){
  });
  origin='http://127.0.0.1:'+ready.port;
  const health=await fetch(origin+'/api/health',{headers:{'X-Research-Hub-Token':token},signal:AbortSignal.timeout(10000)});
- const body=await health.json();if(!health.ok||body.instance!==instance||body.version!=='0.2.0')throw new Error('后端身份校验失败。');
+ const body=await health.json();if(!health.ok||body.instance!==instance||body.version!==app.getVersion())throw new Error('后端身份校验失败。');
  owned.on('exit',()=>{if(!quitting&&child===owned){log('Backend exited unexpectedly');dialog.showErrorBox('Research Hub 服务中断','请重新启动应用。数据保留在：'+workspace+'\n日志目录：'+logs);win?.destroy();app.quit();}});
 }
 function verifyIPC(event){if(!win||event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame||!trusted(event.senderFrame.url,origin))throw new Error('Untrusted IPC sender');}
@@ -64,7 +64,7 @@ if(!app.requestSingleInstanceLock()){app.quit();}else{
    workspace=path.resolve(arg('--workspace')||process.env.RESEARCH_HUB_WORKSPACE||readConfig().workspace||path.join(os.homedir(),'.research-hub','workspace'));
    if(app.isPackaged&&(workspace===process.resourcesPath||workspace.startsWith(path.dirname(app.getPath('exe'))+path.sep)))throw new Error('工作空间不能位于安装目录中。');
    await startBackend(workspace);saveConfig({workspace});
-   function cacheFile(key){if(typeof key!=='string'||!/^rh-(theme|draft-[a-f0-9-]{36})$/.test(key))throw new Error('Invalid UI cache key');const scope=crypto.createHash('sha256').update(workspace.toLowerCase()).digest('hex');const directory=path.join(profile,'ui-cache',scope);fs.mkdirSync(directory,{recursive:true});return path.join(directory,key+'.json');}
+   function cacheFile(key){if(typeof key!=='string'||!/^rh-(theme|(?:draft|capture)-[a-f0-9-]{36})$/.test(key))throw new Error('Invalid UI cache key');const scope=crypto.createHash('sha256').update(workspace.toLowerCase()).digest('hex');const directory=path.join(profile,'ui-cache',scope);fs.mkdirSync(directory,{recursive:true});return path.join(directory,key+'.json');}
    ipcMain.handle('desktop:cache-read',(event,key)=>{verifyIPC(event);const file=cacheFile(key);return fs.existsSync(file)?fs.readFileSync(file,'utf8'):null;});
    ipcMain.handle('desktop:cache-write',(event,key,value)=>{verifyIPC(event);const file=cacheFile(key);if(value===null){if(fs.existsSync(file))fs.unlinkSync(file);return;}if(typeof value!=='string'||value.length>4000000)throw new Error('UI cache value too large');if(key==='rh-theme'&&!['light','dark'].includes(value))throw new Error('Invalid theme');fs.writeFileSync(file+'.tmp',value,'utf8');fs.renameSync(file+'.tmp',file);});
    ipcMain.handle('desktop:info',event=>{verifyIPC(event);return {version:app.getVersion(),workspace,logs,packaged:app.isPackaged};});

@@ -163,7 +163,7 @@ def test_import_stale_merge_transaction_rejected(client,bundle):
     assert client.get('/api/nodes/'+old['id']).json()['markdown']=='new manual edit'
 
 def test_review_algorithm_and_history(client):
-    n=create(client,'vocabulary','term')
+    n=create(client,'vocabulary','term',metadata={'meaning':'术语'})
     state=client.get('/api/nodes/'+n['id']).json()['review']
     at=datetime(2026,1,1,tzinfo=timezone.utc)
     hard=schedule_review(state,'hard',at)
@@ -237,7 +237,7 @@ def test_missing_files_and_migration_reopen(client,tmp_path):
     other=create_app(ws.root)
     with TestClient(other,base_url='http://127.0.0.1') as c: assert c.get('/api/nodes/'+n['id']).json()['markdown']=='safe'
     other.state.workspace.engine.dispose()
-    with sqlite3.connect(ws.db) as db: assert db.execute('select version_num from alembic_version').fetchone()[0]=='0002'
+    with sqlite3.connect(ws.db) as db: assert db.execute('select version_num from alembic_version').fetchone()[0]=='0003'
     with pytest.raises(ValueError,match='非法'): ws.path('../outside')
 
 def test_graph_query_filters_before_limiting(client):

@@ -1,15 +1,68 @@
 {
-  "name":"research-hub-desktop","productName":"Research Hub","version":"0.2.0","private":true,
-  "description":"Local-first personal research knowledge workspace","author":"Research Hub",
-  "main":"main.cjs",
-  "scripts":{"start":"electron .","test":"node --test tests/*.test.cjs","dist":"electron-builder --win nsis --x64 --publish never"},
-  "devDependencies":{"electron":"45.4.1","electron-builder":"26.18.0"},
-  "build":{
-    "appId":"local.researchhub.desktop","productName":"Research Hub","asar":true,
-    "directories":{"output":"../release","buildResources":"assets"},
-    "files":["main.cjs","preload.cjs","policy.cjs","package.json","assets/icon.ico"],
-    "extraResources":[{"from":"../build/backend/ResearchHubBackend","to":"backend","filter":["**/*"]}],
-    "win":{"target":[{"target":"nsis","arch":["x64"]}],"icon":"assets/icon.ico","artifactName":"ResearchHub-Setup-${version}-${arch}.${ext}","signAndEditExecutable":true},
-    "nsis":{"oneClick":false,"perMachine":false,"allowElevation":false,"allowToChangeInstallationDirectory":true,"createDesktopShortcut":true,"createStartMenuShortcut":true,"runAfterFinish":true,"deleteAppDataOnUninstall":false,"installerIcon":"assets/icon.ico","uninstallerIcon":"assets/icon.ico"}
+  "name": "research-hub-desktop",
+  "productName": "Research Hub",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Local-first personal research knowledge workspace",
+  "author": "Research Hub",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "dist": "electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "45.4.1",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "local.researchhub.desktop",
+    "productName": "Research Hub",
+    "asar": true,
+    "directories": {
+      "output": "../release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "policy.cjs",
+      "package.json",
+      "assets/icon.ico"
+    ],
+    "extraResources": [
+      {
+        "from": "../build/backend/ResearchHubBackend",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "ResearchHub-Setup-${version}-${arch}.${ext}",
+      "signAndEditExecutable": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    }
   }
 }

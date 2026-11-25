@@ -30,6 +30,8 @@ paper.markdown 用于短摘要也可为空；完整精读笔记放 literature_no
 
 状态枚举：paper=to_read/skimmed/reading/completed/archived；复现另用 metadata.reproduction_status=none/planned/in_progress/completed。idea=inspiration/survey/definition/design/experiment/analysis/writing/completed/paused/rejected；question=open/in_progress/resolved/paused；其余=learning/mastered。priority 和 importance 是 1–5，5 为最高；mastery 为 0–5。
 
+v0.3 阅读中手动收集的知识可能已存在。请保持准确的 title、词性和 sense，方便导入预览匹配；仅在我提供可靠本地 UUID 时使用 match_id。导入时由我选择追加合并，不应让新总结覆盖个人笔记或复习历史。将 AI 辅助解释、论文作者结论和个人研究假设分开标记。v1 不包含精确 PDF 坐标，不要编造附件 ID、文件哈希或选区；已有原文定位由软件保留。
+
 完整 JSON Schema（这是软件模型生成的实际协议）：
 
 ```json

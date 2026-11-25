@@ -95,7 +95,7 @@ def related(s, node_id):
             result.append({**relation_dict(r),'node':node_dict(other),'direction':'symmetric' if r.type in SYMMETRIC else ('outgoing' if r.source==node_id else 'incoming')})
     return result
 
-def search_nodes(s, query='', kind=None, tag=None, since=None, until=None, deleted=False, limit=100, offset=0, sort='updated', status=None, year=None, importance=None, direction=None):
+def search_nodes(s, query='', kind=None, tag=None, since=None, until=None, deleted=False, limit=100, offset=0, sort='updated', status=None, year=None, importance=None, direction=None, incomplete=False):
     stmt = select(Node).where(Node.deleted==deleted)
     if kind: stmt = stmt.where(Node.kind==kind)
     if status: stmt = stmt.where(Node.status==status)
@@ -111,6 +111,7 @@ def search_nodes(s, query='', kind=None, tag=None, since=None, until=None, delet
     rows = s.scalars(stmt).all()
     def matches(n):
         m = json.loads(n.metadata_json)
+        if incomplete and (n.kind!='vocabulary' or (m.get('meaning') or '').strip() or (m.get('contextual_meaning') or '').strip()): return False
         return (not tag or tag in json.loads(n.tags_json)) and (not year or m.get('year')==year) and (not importance or m.get('importance')==importance) and (not direction or direction in m.get('directions',[]))
     rows = [n for n in rows if matches(n)]
     rows.sort(key=(lambda n: normalize(n.title)) if sort=='title' else ((lambda n:json.loads(n.metadata_json).get('year') or 0) if sort=='year' else (lambda n:n.updated_at)), reverse=sort!='title')
@@ -227,6 +228,8 @@ def schedule_review(before, rating, at=None):
 def review(s, node_id, request):
     n = get_node(s,node_id)
     if n.kind != 'vocabulary': raise HTTPException(422,'只有词汇可复习')
+    from .reading import eligible_vocabulary
+    if not eligible_vocabulary(n): raise HTTPException(422,'请先补充中文含义或语境含义，再开始闪卡复习')
     st = s.get(ReviewState,node_id)
     if st.version != request.expected_version: raise HTTPException(409,'该词汇已在另一窗口复习，请刷新')
     before = state_dict(st)
@@ -242,6 +245,10 @@ def merge_nodes(s, ws, source_id, target_id, source_version, target_version):
     if source.kind=='vocabulary': raise HTTPException(422,'已有词汇含复习历史，请通过导入附加新语境，暂不支持合并两个独立复习队列')
     incoming = NodeInput(**{k:v for k,v in node_dict(source,ws).items() if k in NodeInput.model_fields})
     save_node(s,ws,merge_data(ws,target,incoming),target)
+    from .models import SourceLink
+    for source_link in s.scalars(select(SourceLink).where(SourceLink.node_id==source_id)):
+        if not s.get(SourceLink,(source_link.anchor_id,target_id)):
+            s.add(SourceLink(anchor_id=source_link.anchor_id,node_id=target_id,created_at=now()))
     edges = s.scalars(select(Relation).where(or_(Relation.source==source_id,Relation.target==source_id))).all()
     for r in edges:
         a,b = (target_id if r.source==source_id else r.source),(target_id if r.target==source_id else r.target)

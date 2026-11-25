@@ -19,6 +19,7 @@ from .models import Node, Relation, Attachment, Revision, ReviewState, ReviewLog
 from .schemas import NodeInput, NodeUpdate, ImportBundle, ImportCommit, RelationInput, ReviewInput, CategoryInput, MergeInput, KINDS, STATES
 from .services import seed_categories, get_node, node_dict, save_node, check_version, index_node, related, search_nodes, add_relation, relation_dict, preview_import, commit_import, state_dict, review, merge_nodes, graph_data
 from .backup import create_backup, restore_backup
+from .reading import reading_router, eligible_vocabulary, reading_export
 
 logger = logging.getLogger('research_hub')
 MAX_UPLOAD = 50 * 1024 * 1024
@@ -29,6 +30,12 @@ class ReadingStateInput(BaseModel):
     page:int=Field(default=1,ge=1,le=100000)
     scale:str='page-width'
     offset:float=Field(default=0,ge=0,le=1)
+    rotation:int=Field(default=0)
+    @field_validator('rotation')
+    @classmethod
+    def valid_rotation(cls,value):
+        if value not in {0,90,180,270}:raise ValueError('Invalid PDF rotation')
+        return value
     @field_validator('scale')
     @classmethod
     def valid_scale(cls,value):
@@ -41,7 +48,7 @@ class ReadingStateInput(BaseModel):
 def create_app(workspace=None):
     ws = Workspace(Path(workspace or os.environ.get('RESEARCH_HUB_WORKSPACE',Path.home()/'.research-hub/workspace')))
     seed_categories(ws)
-    app = FastAPI(title='Research Hub',version='0.2.0')
+    app = FastAPI(title='Research Hub',version='0.3.0')
     app.state.workspace = ws
 
     @app.middleware('http')
@@ -87,10 +94,10 @@ def create_app(workspace=None):
         return JSONResponse({'detail':'操作失败，原有记录未被覆盖。请检查服务日志和工作空间文件权限。'},status_code=500)
 
     @app.get('/api/health')
-    def health(): return {'status':'ok','version':'0.2.0','instance':os.environ.get('RESEARCH_HUB_INSTANCE')}
+    def health(): return {'status':'ok','version':'0.3.0','instance':os.environ.get('RESEARCH_HUB_INSTANCE')}
 
     @app.get('/api/settings')
-    def settings(): return {'version':'0.2.0','workspace':str(ws.root),'data_format_version':'1.0','review_algorithm':'sm2-v1','states':STATES,'max_upload_mb':50,'backup_directory':str(Path(os.environ.get('RESEARCH_HUB_BACKUP_DIR',ws.root/'backups')).expanduser().resolve())}
+    def settings(): return {'version':'0.3.0','workspace':str(ws.root),'data_format_version':'1.0','review_algorithm':'sm2-v1','states':STATES,'max_upload_mb':50,'backup_directory':str(Path(os.environ.get('RESEARCH_HUB_BACKUP_DIR',ws.root/'backups')).expanduser().resolve())}
 
     @app.get('/api/dashboard')
     def dashboard():
@@ -98,14 +105,14 @@ def create_app(workspace=None):
             nodes = s.scalars(select(Node).where(Node.deleted==False)).all()
             counts = {kind:sum(n.kind==kind for n in nodes) for kind in KINDS}
             status_counts = {status:sum(n.kind=='paper' and n.status==status for n in nodes) for status in STATES['paper']}
-            due = s.scalar(select(func.count()).select_from(ReviewState).join(Node,Node.id==ReviewState.node_id).where(Node.deleted==False,ReviewState.due_at<=now()))
+            due = sum(eligible_vocabulary(n) for n in s.scalars(select(Node).join(ReviewState,Node.id==ReviewState.node_id).where(Node.deleted==False,ReviewState.due_at<=now())))
             recent = sorted(nodes,key=lambda n:n.updated_at,reverse=True)
             return {'counts':counts,'paper_status':status_counts,'due_vocabulary':due,'open_questions':sum(n.kind=='question' and n.status in ['open','in_progress'] for n in nodes),'recent':[node_dict(n) for n in recent[:8]],'papers':[node_dict(n) for n in recent if n.kind=='paper'][:5],'ideas':[node_dict(n) for n in recent if n.kind=='idea'][:4],'questions':[node_dict(n) for n in recent if n.kind=='question' and n.status in ['open','in_progress']][:5]}
 
     @app.get('/api/nodes')
-    def list_nodes(q='', kind: str|None=None, tag: str|None=None, since: date|None=None, until: date|None=None, deleted:bool=False, limit: int=Query(100,ge=1,le=500), offset:int=Query(0,ge=0),sort='updated',status: str|None=None,year:int|None=None,importance:int|None=None,direction:str|None=None):
+    def list_nodes(q='', kind: str|None=None, tag: str|None=None, since: date|None=None, until: date|None=None, deleted:bool=False, limit: int=Query(100,ge=1,le=500), offset:int=Query(0,ge=0),sort='updated',status: str|None=None,year:int|None=None,importance:int|None=None,direction:str|None=None,incomplete:bool=False):
         with ws.lock, ws.Session() as s:
-            return search_nodes(s,q,kind,tag,str(since) if since else None,str(until) if until else None,deleted,limit,offset,sort,status,year,importance,direction)
+            return search_nodes(s,q,kind,tag,str(since) if since else None,str(until) if until else None,deleted,limit,offset,sort,status,year,importance,direction,incomplete)
 
     @app.post('/api/nodes',status_code=201)
     def create_node(data: NodeInput):
@@ -119,7 +126,7 @@ def create_app(workspace=None):
             n = get_node(s,node_id)
             d = node_dict(n,ws)
             d['relations'] = related(s,n.id)
-            d['attachments'] = [{k:getattr(a,k) for k in ['id','name','media_type','size','created_at']} for a in s.scalars(select(Attachment).where(Attachment.node_id==n.id))]
+            d['attachments'] = [{k:getattr(a,k) for k in ['id','name','media_type','size','sha256','created_at']} for a in s.scalars(select(Attachment).where(Attachment.node_id==n.id))]
             if n.kind=='vocabulary':
                 d['review'] = state_dict(s.get(ReviewState,n.id))
                 d['review_history'] = [{k:getattr(r,k) for k in ['id','rating','reviewed_at','before_json','after_json','algorithm']} for r in s.scalars(select(ReviewLog).where(ReviewLog.node_id==n.id).order_by(ReviewLog.reviewed_at.desc()))]
@@ -224,7 +231,7 @@ def create_app(workspace=None):
                 paper_nodes={r['node']['id'] for r in related(s,paper_id)}
             for st in s.scalars(select(ReviewState).order_by(ReviewState.due_at)):
                 n=s.get(Node,st.node_id)
-                if n.deleted or (due and st.due_at>now()) or (mistakes and st.lapses==0): continue
+                if n.deleted or not eligible_vocabulary(n) or (due and st.due_at>now()) or (mistakes and st.lapses==0): continue
                 m=json.loads(n.metadata_json)
                 if tag and tag not in json.loads(n.tags_json): continue
                 if category and m.get('vocabulary_category')!=category: continue
@@ -304,6 +311,7 @@ def create_app(workspace=None):
             data['attachments']=[{k:getattr(a,k) for k in ['id','node_id','name','path','media_type','sha256','size','created_at']} for a in s.scalars(select(Attachment))]
             data['revisions']=[{'id':r.id,'node_id':r.node_id,'version':r.version,'snapshot':json.loads(r.snapshot),'markdown':ws.read_note(r.note_path),'created_at':r.created_at} for r in s.scalars(select(Revision))]
             data['reading_positions']=[{'attachment_id':r.attachment_id,**json.loads(r.data_json),'updated_at':r.updated_at} for r in s.scalars(select(ReadingPosition))]
+            data.update(reading_export(s,ws))
             return Response(dumps(data),media_type='application/json',headers={'Content-Disposition':'attachment; filename="research-hub.json"'})
 
     @app.get('/api/export/vocabulary')
@@ -349,6 +357,7 @@ def create_app(workspace=None):
             state.data_json=dumps(data.model_dump());state.updated_at=now()
             return data.model_dump()
 
+    app.include_router(reading_router(ws))
     dist=(Path(sys._MEIPASS)/'frontend/dist') if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[2]/'frontend/dist'
     if dist.exists():
         app.mount('/',StaticFiles(directory=dist,html=True),name='frontend')

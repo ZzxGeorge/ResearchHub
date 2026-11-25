@@ -1,7 +1,7 @@
 export type Kind = 'paper'|'vocabulary'|'mathematics'|'algorithm'|'idea'|'question';
 export type Meta = Record<string, string|number|boolean|string[]|null>;
 export type Node = {id:string;kind:Kind;title:string;status:string;tags:string[];metadata:Meta;version:number;created_at:string;updated_at:string;markdown?:string;relations?:Edge[];attachments?:Attachment[];review?:ReviewState;review_history?:Record<string,string>[]};
-export type Attachment = {id:string;name:string;media_type:string;size:number};
+export type Attachment = {id:string;name:string;media_type:string;size:number;sha256?:string};
 export type Edge = {id:string;source:string;target:string;type:string;description:string;evidence:string;node?:Node;direction?:string};
 export type ReviewState = {version:number;repetitions:number;interval_days:number;ease:string;due_at:string;last_review:string|null;lapses:number};
 export type Category = {id:string;name:string;kind:Kind;parent_id:string|null};

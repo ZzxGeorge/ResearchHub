@@ -22,7 +22,8 @@ Invoke-Checked $pythonPath @('-m','PyInstaller','--noconfirm','--distpath','buil
 $env:CSC_IDENTITY_AUTO_DISCOVERY='false'
 Push-Location desktop
 try { Invoke-Checked 'npm.cmd' @('run','dist') } finally { Pop-Location }
-$installer=Join-Path $projectRoot 'release/ResearchHub-Setup-0.2.0-x64.exe'
+$appVersion=(Get-Content -LiteralPath (Join-Path $projectRoot 'desktop/package.json') -Raw | ConvertFrom-Json).version
+$installer=Join-Path $projectRoot ('release/ResearchHub-Setup-'+$appVersion+'-x64.exe')
 if (-not (Test-Path -LiteralPath $installer)) { throw 'Installer was not generated.' }
 Get-Item -LiteralPath $installer | Select-Object FullName,Length,LastWriteTime
 Get-FileHash -LiteralPath $installer -Algorithm SHA256

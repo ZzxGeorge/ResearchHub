@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 from contextlib import closing
 from pathlib import Path, PurePosixPath
-from sqlalchemy import select
+from sqlalchemy import select, text
 from .models import Node, Revision, Attachment
 from .workspace import now, uid, dumps, sha
 
@@ -28,6 +28,11 @@ def create_backup(ws, output_dir=None):
             paths.update(s.scalars(select(Node.note_path)).all())
             paths.update(s.scalars(select(Revision.note_path)).all())
             paths.update(s.scalars(select(Attachment.path)).all())
+            # Also works before migration 0003, when the annotation tables do not exist yet.
+            tables=set(s.execute(text("SELECT name FROM sqlite_master WHERE type='table'")).scalars())
+            for table in ['annotations','annotation_revisions']:
+                if table in tables:
+                    paths.update(s.execute(text('SELECT note_path FROM '+table)).scalars())
         manifest = {'data_format_version':'1.0','created_at':now(),'files':{}}
         temporary = destination.with_suffix('.tmp')
         try:
@@ -74,9 +79,12 @@ def restore_backup(archive, target):
             with closing(sqlite3.connect(stage/'database/hub.sqlite3')) as db:
                 if db.execute('PRAGMA integrity_check').fetchone()[0]!='ok' or db.execute('PRAGMA foreign_key_check').fetchall():
                     raise ValueError('数据库完整性校验失败')
-                if db.execute('SELECT version_num FROM alembic_version').fetchone()[0] not in {'0001','0002'}:
+                if db.execute('SELECT version_num FROM alembic_version').fetchone()[0] not in {'0001','0002','0003'}:
                     raise ValueError('备份数据库版本暂不受支持')
                 paths = [r[0] for r in db.execute('SELECT note_path FROM nodes UNION SELECT note_path FROM revisions UNION SELECT path FROM attachments')]
+                tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+                for table in ['annotations','annotation_revisions']:
+                    if table in tables: paths.extend(r[0] for r in db.execute('SELECT note_path FROM '+table))
                 for path in paths:
                     if path not in manifest['files']: raise ValueError('数据库引用了缺失的文件: '+path)
                 for path, checksum in db.execute('SELECT path,sha256 FROM attachments'):

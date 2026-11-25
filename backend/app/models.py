@@ -89,3 +89,56 @@ class ReadingPosition(Base):
     attachment_id = Column(String, ForeignKey('attachments.id'), primary_key=True)
     data_json = Column(Text, nullable=False)
     updated_at = Column(String, nullable=False)
+
+class SourceAnchor(Base):
+    __tablename__ = 'source_anchors'
+    id = Column(String, primary_key=True)
+    paper_id = Column(String, ForeignKey('nodes.id'), nullable=False, index=True)
+    attachment_id = Column(String, ForeignKey('attachments.id'), nullable=False, index=True)
+    pdf_sha256 = Column(String, nullable=False)
+    page = Column(Integer, nullable=False)
+    printed_page = Column(Text, nullable=False, default='')
+    raw_text = Column(Text, nullable=False)
+    cleaned_text = Column(Text, nullable=False)
+    context = Column(Text, nullable=False, default='')
+    section = Column(Text, nullable=False, default='')
+    rects_json = Column(Text, nullable=False)
+    notes = Column(Text, nullable=False, default='')
+    version = Column(Integer, nullable=False, default=1)
+    deleted = Column(Boolean, nullable=False, default=False)
+    created_at = Column(String, nullable=False)
+    updated_at = Column(String, nullable=False)
+
+class SourceLink(Base):
+    __tablename__ = 'source_links'
+    anchor_id = Column(String, ForeignKey('source_anchors.id'), primary_key=True)
+    node_id = Column(String, ForeignKey('nodes.id'), primary_key=True, index=True)
+    created_at = Column(String, nullable=False)
+
+class Annotation(Base):
+    __tablename__ = 'annotations'
+    id = Column(String, primary_key=True)
+    anchor_id = Column(String, ForeignKey('source_anchors.id'), nullable=False, unique=True)
+    color = Column(String, nullable=False)
+    label = Column(Text, nullable=False, default='')
+    note_path = Column(Text, nullable=False)
+    version = Column(Integer, nullable=False, default=1)
+    deleted = Column(Boolean, nullable=False, default=False)
+    created_at = Column(String, nullable=False)
+    updated_at = Column(String, nullable=False)
+
+class AnnotationRevision(Base):
+    __tablename__ = 'annotation_revisions'
+    id = Column(String, primary_key=True)
+    annotation_id = Column(String, ForeignKey('annotations.id'), nullable=False, index=True)
+    version = Column(Integer, nullable=False)
+    note_path = Column(Text, nullable=False)
+    snapshot = Column(Text, nullable=False)
+    created_at = Column(String, nullable=False)
+    __table_args__ = (UniqueConstraint('annotation_id', 'version'),)
+
+class PaperReadingState(Base):
+    __tablename__ = 'paper_reading_states'
+    paper_id = Column(String, ForeignKey('nodes.id'), primary_key=True)
+    data_json = Column(Text, nullable=False)
+    updated_at = Column(String, nullable=False)
