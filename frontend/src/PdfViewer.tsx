@@ -47,7 +47,6 @@ export function PdfViewer({url,paperId='',sha256='',sources=[],focusSource,onCap
     if(!live)return;
     const items=sourceRef.current.filter(a=>a.attachment_id===currentAttachment&&a.pdf_sha256===sha256&&a.available);
     const focus=focusRef.current;
-    if(focus&&focus.attachment_id===currentAttachment&&focus.pdf_sha256===sha256&&!items.some(a=>a.id===focus.id))items.push(focus);
     viewerElement.current?.querySelectorAll('.source-layer').forEach(layer=>layer.remove());
     for(const canvas of viewerElement.current?.querySelectorAll('.canvasWrapper canvas')||[]){
      const div=canvas.closest<HTMLElement>('.page');if(!div)continue;

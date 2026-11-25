@@ -305,6 +305,9 @@ def reading_router(ws):
                 value = merge_data(ws, old, incoming)
             else:
                 value = incoming
+                if old:
+                    # Lifecycle and tags are edited in the ordinary detail view, not this quick form.
+                    value = value.model_copy(update={'status':old.status,'tags':json.loads(old.tags_json)})
             n = save_node(s, ws, value, old)
             link_source(s, a, n.id)
             add_relation(s, n.id, a.paper_id, 'inspired_by' if n.kind == 'idea' else 'derived_from', '阅读时收集', f'PDF 第 {a.page} 页 · {a.id}')

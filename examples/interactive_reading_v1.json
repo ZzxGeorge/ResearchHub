@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0",
+  "paper": {
+    "key": "paper",
+    "kind": "paper",
+    "title": "Research Hub 交互阅读后导入示例（非真实论文）",
+    "tags": [
+      "示例",
+      "BPTT"
+    ],
+    "status": "reading",
+    "metadata": {
+      "authors": [
+        "Example Author"
+      ],
+      "year": 2026,
+      "directions": [
+        "World Models"
+      ],
+      "importance": 4
+    },
+    "markdown": ""
+  },
+  "literature_note": "## 阅读结束后补充\n\n这是 v0.3 与 v1 兼容性的公开演示。先在隔离工作空间手动创建 posterior，再导入本文件，并在预览选择追加合并。\n\n## AI 辅助解释（演示，需核对）\n\n## 一句话总结\n\n这是测试导入和公式渲染的示例，不代表已验证的论文总结。\n\n## 核心数学公式\n\nBPTT、Jacobian 与 Chain Rule 的关联由下列示例演示。\n\n$$\nJ = \\begin{bmatrix} \\frac{\\partial f_1}{\\partial x_1} & \\frac{\\partial f_1}{\\partial x_2} \\\\ \\frac{\\partial f_2}{\\partial x_1} & \\frac{\\partial f_2}{\\partial x_2} \\end{bmatrix}\n$$\n\n$$\nf(x)=\\begin{cases}x^2 & x\\geq 0\\\\-x & x<0\\end{cases}\n$$\n\n$$\n\\mathbb{E}_{x\\sim p}[f(x)] = \\int_{-\\infty}^{\\infty} f(x)p(x)\\,dx, \\qquad \\mathcal{L}=\\sum_{t=1}^{T}\\ell_t\n$$\n\n```mermaid\nflowchart LR\n  A[Paper] --> B[Mathematics]\n  B --> C[Algorithm]\n  C --> D[Research Idea]\n```\n\n```python\ndef squared_error(prediction, target):\n    return (prediction - target) ** 2\n```\n\n| 验证项 | 预期 |\n| --- | --- |\n| 本地存储 | 不上传数据 |\n\n- [ ] 补充真实论文的实验结果\n",
+  "vocabulary": [
+    {
+      "key": "posterior",
+      "kind": "vocabulary",
+      "title": " posterior ",
+      "metadata": {
+        "part_of_speech": "noun",
+        "sense": "probability distribution",
+        "vocabulary_category": "technical",
+        "meaning": "后验分布",
+        "contextual_meaning": "观察数据后更新的概率分布。此处仅作词汇导入演示。",
+        "examples": [
+          "The posterior is conditioned on observations."
+        ],
+        "translations": [
+          "后验分布以观测为条件。"
+        ],
+        "sources": [
+          "演示 PDF 第 2 页（文字说明；精确坐标由本地选文创建）"
+        ],
+        "priority": 4
+      },
+      "tags": [
+        "Bayesian"
+      ],
+      "markdown": "## AI 辅助解释（演示）\n\n导入追加的文字不应覆盖阅读时手写的笔记，或重置原有复习历史。"
+    }
+  ],
+  "mathematics": [
+    {
+      "key": "jacobian",
+      "kind": "mathematics",
+      "title": "Jacobian",
+      "metadata": {
+        "english_name": "Jacobian matrix",
+        "directions": [
+          "Matrix Calculus"
+        ]
+      },
+      "markdown": "## 定义\n\n$$J_{ij}=\\frac{\\partial f_i}{\\partial x_j}$$\n\n## 个人理解\n\n待补充。"
+    },
+    {
+      "key": "chain_rule",
+      "kind": "mathematics",
+      "title": "Chain Rule",
+      "metadata": {
+        "chinese_title": "链式法则"
+      },
+      "markdown": "## 与 BPTT 的关联\n\n此条目用于演示知识复用。推导与来源需在实际阅读中补充。"
+    }
+  ],
+  "algorithms": [
+    {
+      "key": "bptt",
+      "kind": "algorithm",
+      "title": "BPTT",
+      "metadata": {
+        "english_name": "Backpropagation Through Time",
+        "directions": [
+          "World Models"
+        ]
+      },
+      "markdown": "## 核心机制\n\n沿时间展开计算图，应用链式法则传播梯度。\n\n## 实现经验\n\n待记录。"
+    }
+  ],
+  "research_ideas": [
+    {
+      "key": "idea",
+      "kind": "idea",
+      "title": "检验 BPTT 时间展开长度对梯度的影响（示例假设）",
+      "status": "design",
+      "metadata": {
+        "next_action": "建立简单实验，对比梯度范数",
+        "priority": 3
+      },
+      "markdown": "## 研究假设\n\n这是未验证的教学示例，不构成研究结论。\n\n## 实验设计\n\n控制模型与输入，改变展开长度，记录梯度范数。\n\n## 评价指标\n\n梯度范数、运行时间。\n\n## 风险\n\n简单模型的结果可能无法外推。"
+    }
+  ],
+  "questions": [
+    {
+      "key": "question",
+      "kind": "question",
+      "title": "如何核对 BPTT 中 Jacobian 的维度？",
+      "metadata": {
+        "question_type": "mathematics",
+        "next_action": "逐层列出张量形状"
+      },
+      "markdown": "## 问题描述\n\n对比链式法则中各矩阵的维度。\n\n## 解决过程\n\n待记录。"
+    }
+  ],
+  "relations": [
+    {
+      "source": "bptt",
+      "target": "jacobian",
+      "type": "uses",
+      "evidence": "示例关联"
+    },
+    {
+      "source": "chain_rule",
+      "target": "bptt",
+      "type": "prerequisite_of"
+    },
+    {
+      "source": "idea",
+      "target": "paper",
+      "type": "inspired_by"
+    },
+    {
+      "source": "idea",
+      "target": "bptt",
+      "type": "depends_on"
+    },
+    {
+      "source": "question",
+      "target": "jacobian",
+      "type": "related_to"
+    }
+  ],
+  "reading_summary": "公开流程示例；不包含本地 UUID、PDF 哈希或坐标，不应作为真实科研结论。"
+}

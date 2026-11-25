@@ -141,11 +141,13 @@ def test_geometry_and_scope_validation(client):
 def test_all_quick_knowledge_types_and_explicit_edit(client):
     data = source_data(client)
     for kind in ['mathematics','algorithm','idea','question']:
-        result = collect(client, data, node={'kind':kind,'title':kind,'metadata':{'next_action':'Check source'},'markdown':'Personal hypothesis'})
+        status = 'design' if kind == 'idea' else 'in_progress' if kind == 'question' else 'mastered'
+        result = collect(client, data, node={'kind':kind,'title':kind,'status':status,'tags':['personal'],'metadata':{'next_action':'Check source'},'markdown':'Personal hypothesis'})
         n = result['node']
         assert n['kind'] == kind
         replacement = collect(client, data, node={'kind':kind,'title':kind,'metadata':{'next_action':'Next step'},'markdown':'Explicit edited content'},mode='edit',target_id=n['id'],expected_version=n['version'])['node']
         assert replacement['version'] == 2 and replacement['metadata']['next_action'] == 'Next step'
+        assert replacement['status'] == status and replacement['tags'] == ['personal']
         assert client.get('/api/nodes/'+n['id']+'/history').json()[0]['markdown']
 
 

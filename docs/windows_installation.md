@@ -2,7 +2,7 @@
 
 ## 安装和启动
 
-双击 release/ResearchHub-Setup-0.2.0-x64.exe。默认当前用户安装到 `%LOCALAPPDATA%/Programs/Research Hub`，向导支持更改目录；提供桌面与开始菜单快捷方式、系统卸载入口。安装后双击 Research Hub，程序自动启动本地服务，不需要 Python / Node / PowerShell / 浏览器。
+双击 release/ResearchHub-Setup-0.3.0-x64.exe。默认当前用户安装到 `%LOCALAPPDATA%/Programs/Research Hub`，向导支持更改目录；提供桌面与开始菜单快捷方式、系统卸载入口。安装后双击 Research Hub，程序自动启动本地服务，不需要 Python / Node / PowerShell / 浏览器。
 
 本次安装包未签名，可能出现未知发布者 / SmartScreen 提示。由用户自行核验文件来源及 SHA256 后处理系统提示；不建议关闭系统安全功能。发行前可以接入自己的 Authenticode 证书重新签名。
 
@@ -37,3 +37,6 @@
 ## 验证范围
 
 当前实测为此 Windows 11 开发机。清洁 Windows、Windows 10、SmartScreen 实际放行流程、全部显示器 / DPI 组合仍需独立验证。详细结果见 verification-v020.md。
+
+
+v0.3 增加迁移 0003；升级前自动备份全部知识库。文件结构与引用规则见 [来源与批注模型](source_anchor_model.md)，实际安装和桌面验证边界见 [v0.3 验收记录](verification-v030.md)。

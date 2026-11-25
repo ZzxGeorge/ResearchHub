@@ -47,3 +47,8 @@ FTS5 unicode61 进行英文词项搜索，参数化 LIKE 使用转义后的归�
 ## 演进与恢复
 
 迁移脚本冻结 SQL，避免运行时模型变化篡改旧版本迁移。当前仅有初始迁移；后续版本必须新增迁移、先在备份副本上测试。备份使用 SQLite backup API，不直接复制活动 WAL 数据库文件。备份包含所有受管理、被引用的正文历史和附件。
+
+
+## v0.3 迁移 0003
+
+新增 source_anchors、source_links、annotations、annotation_revisions、paper_reading_states；每附件 reading_positions 增加可选旋转状态。来源矩形为多页 PDF 坐标，批注正文/历史是不可变 Markdown 文件，SQLite 存指针。旧迁移 0001 / 0002 未更改；自动升级前备份。详细字段、引用和删除规则见 [SourceAnchor 数据模型](source_anchor_model.md)。

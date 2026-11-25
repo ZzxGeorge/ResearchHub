@@ -33,9 +33,11 @@ def credential():
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--tag', default='v0.2.0')
+    parser.add_argument('--tag')
+    parser.add_argument('--notes', type=Path)
     args = parser.parse_args()
     info = json.loads((ROOT/'release/BUILD_INFO.json').read_text(encoding='utf-8'))
+    args.tag = args.tag or 'v'+info['version']
     if args.tag != 'v'+info['version']:
         raise RuntimeError('Tag and built artifact version do not match')
     exe = ROOT/'release'/f'ResearchHub-Setup-{info["version"]}-x64.exe'
@@ -43,29 +45,11 @@ def main():
     expected = digest(exe)
     if expected != info['sha256'] or checksum.read_text(encoding='utf-8').strip() != expected+'  '+exe.name:
         raise RuntimeError('Installer checksum verification failed; refusing to publish')
-    target = subprocess.check_output(['git','rev-parse',args.tag], cwd=ROOT, text=True).strip()
+    target = subprocess.check_output(['git','rev-parse',args.tag+'^{commit}'], cwd=ROOT, text=True).strip()
     if target != info['commit']:
         raise RuntimeError('The version tag does not match the verified build commit')
-    body = f'''Research Hub {args.tag} — Windows 桌面应用与 PDF 阅读增强
-
-## 安装
-下载 `{exe.name}`，按向导安装，再从桌面或开始菜单启动。安装后不需要 Python、Node.js 或外部浏览器。可用 SHA256SUMS.txt 核验下载文件。
-
-## 功能
-- 本地科研知识库：论文、词汇、数学、算法、科研想法、问题。
-- Electron 桌面窗口与自动后端管理；设置中选择独立工作空间。
-- PDF 连续阅读、文本选择、搜索高亮、目录、缩略图、分栏与阅读位置恢复。
-- Markdown / LaTeX / Mermaid、知识关联、导入、搜索、词汇复习与完整备份。
-
-## 数据与验证边界
-默认沿用 `~/.research-hub/workspace`，数据库迁移前自动备份；安装和卸载默认保留科研资料。此附件不包含任何个人知识库。
-
-后端 25、前端 7、桌面策略 3 项自动化测试通过；本机 Windows 11 标准安装、卸载重装、覆盖安装已验证。未在干净 Windows 10/11 环境全面验证，全部 Electron PDF 集成交互仍需补充验收。进阶批注、摘录联动和 OCR 尚未实现。
-
-安装包未进行数字签名，可能显示 SmartScreen 或未知发布者提示。请使用标准安装目录；不要直接运行 Codex 源码目录中的 win-unpacked 包。
-
-详见仓库 README.md、DEVELOPMENT_STATUS.md 和 docs/verification-v020.md。
-'''
+    notes = args.notes or ROOT/'docs'/('release-v'+info['version'].replace('.','')+'.md')
+    body = notes.read_text(encoding='utf-8')
     with httpx.Client(headers={'Authorization':'Bearer '+credential(),
                                'Accept':'application/vnd.github+json',
                                'X-GitHub-Api-Version':'2022-11-28'}, timeout=120) as client:

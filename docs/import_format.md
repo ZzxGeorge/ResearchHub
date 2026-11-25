@@ -87,3 +87,8 @@ source、target 为本导入包 key；type 是规定的十种关系之一；desc
 | 完整库 JSON 导出 | 与单篇 ImportBundle 协议不同；完整恢复使用备份 ZIP |
 
 未来协议升级必须保留旧 Schema 或提供明确迁移器；不能静默将未知版本当作当前版本。
+
+
+## v0.3 阅读中收集与总结导入
+
+原 v1 Schema 保持字节级兼容。使用 [交互阅读后导入示例](../examples/interactive_reading_v1.json) 练习：先手动收集同名词汇，再预览并明确选择合并。精确 SourceAnchor 与复习历史由本机保留；不要让 ChatGPT 生成坐标、附件 UUID 或哈希。导入正文用标题区分 AI 辅助解释与个人笔记。整库数据含新阅读实体的迁移使用 ZIP 备份，不把快照 JSON 当成阅读总结 v1。

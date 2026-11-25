@@ -1,4 +1,4 @@
-# Research Hub Windows 桌面架构 — v0.2.0
+# Research Hub Windows 桌面架构 — v0.3.0
 
 React / FastAPI / SQLite / Markdown 业务继续复用。Electron 45.4.1 管理窗口、服务生命周期和有限系统操作；electron-builder 26.18.0 / NSIS 生成当前用户 EXE；PyInstaller 6.22.3 生成后端 onedir，包含 Python 3.10 与迁移 / 前端资源。没有引入远程服务。
 
@@ -32,3 +32,8 @@ contextIsolation=true、nodeIntegration=false、sandbox=true、webSecurity=true�
 阅读位置按附件存入 SQLite，在模式切换、离开和 pagehide 时提交；搜索与本地笔记不上传。文档脚本 / 表单批注编辑关闭，eval 不启用。浏览器拒绝系统全屏时使用窗口内阅读覆盖层，并可按 Esc 返回。
 
 参考：[Electron 安全建议](https://www.electronjs.org/docs/latest/tutorial/security)、[NSIS 配置](https://www.electron.build/docs/nsis/)、[PyInstaller 资源打包](https://pyinstaller.org/en/stable/spec-files.html)。
+
+
+## 交互阅读 v0.3
+
+选文、出处和批注仍通过受保护的本机 API，沿用 PDF.js 和现有沙盒。桌面缓存额外允许 rh-capture-UUID，支持随机端口间恢复阅读草稿；键和 4 MB 值上限均受控。后端身份版本检查与 Electron app.getVersion() 一致。阅读工作区、来源与批注结构见 [SourceAnchor 模型](source_anchor_model.md)。构建资源白名单不包含任何 QA / 用户工作空间。

@@ -14,6 +14,8 @@
 
 [新功能使用说明](docs/interactive_reading.md) · [来源与批注数据模型](docs/source_anchor_model.md)
 
+![交互阅读提问预览](docs/screenshots/reading-v030-prompt.jpg)
+
 ## 基本功能
 
 | 模块 | 功能 |
@@ -159,7 +161,7 @@ npm test
 npm run build
 ```
 
-桌面壳策略测试：在项目根目录运行 `node --test desktop/tests/*.test.cjs`。历史版本兼容性测试需要仓库中的 `v0.1.0` 标签；请保留 Git 历史和标签。
+桌面壳策略测试：在项目根目录运行 `node --test desktop/tests/*.test.cjs`。历史版本兼容性测试需要仓库中的 `v0.1.0` 和 `v0.2.0` 标签；请保留 Git 历史和标签。
 
 Linux 将 Python 路径替换为 `.venv/bin/python`。协议生成器同时生成 Schema 与 ChatGPT 提示词；测试验证它们与实际 API 一致。
 
@@ -214,7 +216,7 @@ git push origin main
 - [导入字段与异常处理](docs/import_format.md)
 - [完整 JSON Schema](schemas/reading-summary-v1.schema.json)
 - [ChatGPT 配套提示词](docs/chatgpt_export_prompt.md)
-- [合法示例](examples/reading_summary.json)
+- [合法示例](examples/reading_summary.json) · [阅读中手动收集后的 v1 导入示例](examples/interactive_reading_v1.json)
 - [验收记录](docs/verification.md)
 - [长期开发规范](AGENTS.md)
 
